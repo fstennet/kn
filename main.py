@@ -1,39 +1,44 @@
 # Import libraries
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chat_models import ChatOpenAI
-import os
+import sys
 from langchain.vectorstores import Chroma
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.llms import OpenAI
 from langchain.chains import RetrievalQA
-from langchain.document_loaders import DirectoryLoader
 
-def load_documents(path):
-    loader = DirectoryLoader(path, glob='**/*.*')
-    return loader.load()
+def load_db(embedding, dir):
+    return Chroma(embedding_function=embedding, persist_directory=dir)
 
-def split_text(doc):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    return text_splitter.split_documents(doc)
+def create_retriever(db):
+    return db.as_retriever()
 
-def setup_db(docs, embedding):
-    
-    return Chroma.from_documents(documents=docs,
-                                     embedding=embedding,
-                                     persist_directory=persist_directory)
+def create_chain(llm, retriever):
+    return RetrievalQA.from_chain_type(llm=llm,
+                                  chain_type="stuff",
+                                  retriever=retriever,
+                                  return_source_documents=True,
+                                  verbose=True)
+
+def parse_response(response):
+    print(response['result'])
+    print('\nSources:')
+    for source in response['source_documents']:
+        print(source.metadata['source'])
 
 if __name__ == '__main__':
-
-    persist_directory = 'db'
+    if len(sys.argv) < 2:
+        raise Exception('db or query param missing. Usage: main.py "db folder name" "query to make"')
+    db_param = sys.argv[1]
+    query = sys.argv[2]
 
     embedding = OpenAIEmbeddings()
 
-    documents = load_documents('data/optimus')
-    splitted_docs = split_text(documents)
+    db = load_db(embedding, db_param)
+    llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo')
 
-    db = setup_db(splitted_docs, embedding)
+    retriever = create_retriever(db)
 
-    
+    chain = create_chain(llm=llm, retriever=retriever)
 
-    
+    response = chain(query)
 
+    parse_response(response=response)

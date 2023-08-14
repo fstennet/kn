@@ -20,7 +20,7 @@ def setup_db(docs, embedding, dir):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 1 or len(sys.argv) == 2:
+    if len(sys.argv) < 3:
         raise Exception('db or document_path param missing. Usage: db_seeding.py "db folder name" "location of source documents"')
 
     db_param = sys.argv[1]
