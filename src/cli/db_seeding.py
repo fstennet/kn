@@ -1,4 +1,3 @@
-# Import libraries
 import sys
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
@@ -21,7 +20,7 @@ def setup_db(docs, embedding, dir):
 if __name__ == '__main__':
 
     if len(sys.argv) < 3:
-        raise Exception('db or document_path param missing. Usage: db_seeding.py "db folder name" "location of source documents"')
+        raise Exception('db or document_path param missing. Usage: db_seeding.py "db name" "document_path"')
 
     db_param = sys.argv[1]
     document_path_param = sys.argv[2]
@@ -34,4 +33,4 @@ if __name__ == '__main__':
     db = setup_db(splitted_docs, embedding, db_param)
     db.persist()
 
-    print('Database created.')
+    print('Database created and seeded.')
