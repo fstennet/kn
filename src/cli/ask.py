@@ -2,7 +2,7 @@
 from langchain.chat_models import ChatOpenAI
 import sys
 from langchain.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings, SentenceTransformerEmbeddings
 from langchain.chains import RetrievalQA
 
 def load_db(embedding, dir):
@@ -13,7 +13,7 @@ def create_retriever(db):
 
 def create_chain(llm, retriever):
     return RetrievalQA.from_chain_type(llm=llm,
-                                  chain_type="stuff",
+                                  chain_type="refine",
                                   retriever=retriever,
                                   return_source_documents=True,
                                   verbose=True)
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     db_param = sys.argv[1]
     query = sys.argv[2]
 
-    embedding = OpenAIEmbeddings()
+    embedding = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     db = load_db(embedding, db_param)
     llm = ChatOpenAI(temperature=0, model_name='gpt-3.5-turbo')

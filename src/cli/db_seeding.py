@@ -1,15 +1,15 @@
 import sys
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter, Language
 from langchain.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
+from langchain.embeddings import OpenAIEmbeddings, SentenceTransformerEmbeddings
 from langchain.document_loaders import DirectoryLoader
 
 def load_documents(path):
-    loader = DirectoryLoader(path, glob='**/*.*')
+    loader = DirectoryLoader(path, glob='**/*.*', recursive=True)
     return loader.load()
 
 def split_text(doc):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200).from_language(language=Language.PHP)
     return text_splitter.split_documents(doc)
 
 def setup_db(docs, embedding, dir):
@@ -25,7 +25,7 @@ if __name__ == '__main__':
     db_param = sys.argv[1]
     document_path_param = sys.argv[2]
 
-    embedding = OpenAIEmbeddings()
+    embedding = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
 
     documents = load_documents(document_path_param)
     splitted_docs = split_text(documents)
